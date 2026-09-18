@@ -1,0 +1,9 @@
+date,account,holder,type,description,reference,amount,signed_amount,balance_after,currency
+2026-03-01 09:00:00,ACC-0001,Ayesha Khan,Deposit,March salary,,185000.00,185000.00,185000.00,PKR
+2026-03-02 09:00:00,ACC-0001,Ayesha Khan,TransferOut,Monthly saving,53030EB6,60000.00,-60000.00,125000.00,PKR
+2026-03-02 09:00:00,ACC-0002,Ayesha Khan,TransferIn,Monthly saving,53030EB6,60000.00,60000.00,60000.00,PKR
+2026-03-04 09:00:00,ACC-0001,Ayesha Khan,Withdrawal,Rent top-up,,12500.00,-12500.00,112500.00,PKR
+2026-03-07 09:00:00,ACC-0001,Ayesha Khan,TransferOut,Paint and fittings,D43686C7,8450.00,-8450.00,104050.00,PKR
+2026-03-07 09:00:00,ACC-0003,Gulberg Hardware,TransferIn,Paint and fittings,D43686C7,8450.00,8450.00,8450.00,PKR
+2026-03-11 09:00:00,ACC-0001,Ayesha Khan,Fee,Card annual fee,,250.00,-250.00,103800.00,PKR
+2026-03-31 09:00:00,ACC-0002,Ayesha Khan,Interest,Interest at 8.5% p.a.,,425.00,425.00,60425.00,PKR
