@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BankLedger — Interactive Demo</title>
+<style>
+:root {
+  --bg: #f6f7f9; --surface: #ffffff; --surface-2: #eef0f4; --border: #dde1e8;
+  --text: #16181d; --muted: #5d6573; --accent: #2563eb; --accent-ink: #ffffff;
+  --good: #15803d; --bad: #b91c1c; --radius: 12px;
+  --shadow: 0 1px 2px rgb(16 24 40 / 0.06), 0 4px 16px rgb(16 24 40 / 0.05);
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0e1116; --surface: #161a21; --surface-2: #1d222b; --border: #2a303b;
+    --text: #e8eaee; --muted: #9aa3b2; --accent: #60a5fa; --accent-ink: #0b1220;
+    --good: #4ade80; --bad: #f87171; --shadow: none; color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; font: 16px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); }
+a { color: var(--accent); }
+.wrap { max-width: 1080px; margin: 0 auto; padding: 24px 16px 48px; }
+header { display: flex; flex-wrap: wrap; gap: 12px; align-items: baseline; justify-content: space-between; margin-bottom: 8px; }
+header h1 { margin: 0; font-size: 1.7rem; letter-spacing: -0.02em; }
+header p { margin: 4px 0 0; color: var(--muted); }
+.gh { font-weight: 600; text-decoration: none; border: 1px solid var(--border); background: var(--surface); padding: 8px 14px; border-radius: var(--radius); }
+.gh:hover { border-color: var(--accent); }
+.grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); margin-top: 20px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 18px; }
+.card h2 { margin: 0 0 12px; font-size: 1.05rem; }
+label { display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 4px; }
+input, select, textarea, button {
+  font: inherit; color: var(--text); background: var(--surface-2);
+  border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; width: 100%;
+}
+button { background: var(--accent); color: var(--accent-ink); border: none; cursor: pointer; font-weight: 600; width: auto; }
+button:hover { filter: brightness(1.08); }
+button.ghost { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: end; }
+.row > div { flex: 1; min-width: 120px; }
+table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--border); }
+th { color: var(--muted); font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; }
+td.num, th.num { text-align: right; font-family: var(--mono); }
+.pos { color: var(--good); } .neg { color: var(--bad); }
+.msg { margin-top: 10px; padding: 9px 12px; border-radius: 8px; font-size: 0.9rem; display: none; }
+.msg.err { display: block; background: color-mix(in srgb, var(--bad) 12%, transparent); color: var(--bad); border: 1px solid color-mix(in srgb, var(--bad) 35%, transparent); }
+.msg.ok { display: block; background: color-mix(in srgb, var(--good) 12%, transparent); color: var(--good); border: 1px solid color-mix(in srgb, var(--good) 35%, transparent); }
+.accts { display: flex; flex-direction: column; gap: 8px; }
+.acct { border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; cursor: pointer; background: var(--surface-2); }
+.acct[aria-selected="true"] { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--surface)); }
+.acct .top { display: flex; justify-content: space-between; font-weight: 600; }
+.acct .meta { font-size: 0.8rem; color: var(--muted); }
+.balance-big { font-size: 1.6rem; font-family: var(--mono); font-weight: 700; }
+.tag { display: inline-block; font-size: 0.7rem; padding: 2px 7px; border-radius: 99px; background: var(--surface-2); border: 1px solid var(--border); color: var(--muted); }
+.tag.frozen { color: var(--bad); border-color: var(--bad); }
+.audit { font-family: var(--mono); font-size: 0.85rem; white-space: pre-wrap; }
+footer { margin-top: 32px; text-align: center; color: var(--muted); font-size: 0.85rem; }
+footer a { color: var(--muted); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+@media (max-width: 640px) { .grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div>
+    <h1>BankLedger</h1>
+    <p>Append-only account ledger in C# — deposits, withdrawals, transfers and an audit that replays every entry. Try it live.</p>
+  </div>
+  <a class="gh" href="https://github.com/umer-78/bank-ledger-csharp" rel="noopener">View on GitHub</a>
+</header>
+
+<main>
+<section class="grid" aria-label="Interactive ledger">
+  <div class="card">
+    <h2>Accounts</h2>
+    <div class="accts" id="acctList" role="listbox" aria-label="Accounts"></div>
+    <div class="row" style="margin-top:12px">
+      <div>
+        <label for="holder">Holder</label>
+        <input id="holder" placeholder="Ayesha Khan">
+      </div>
+      <div>
+        <label for="type">Type</label>
+        <select id="type"><option value="checking">Checking</option><option value="savings">Savings</option></select>
+      </div>
+      <div>
+        <label for="od">Overdraft</label>
+        <input id="od" type="number" min="0" step="0.01" value="0">
+      </div>
+      <button id="btnOpen">Open</button>
+    </div>
+    <div class="msg" id="openMsg" role="status"></div>
+    <p style="margin-top:14px;font-size:.85rem;color:var(--muted)">Selected balance:</p>
+    <div class="balance-big" id="selBalance">—</div>
+    <p style="margin-top:6px" id="selMeta"></p>
+  </div>
+
+  <div class="card">
+    <h2>Post a transaction</h2>
+    <div class="row">
+      <div>
+        <label for="action">Action</label>
+        <select id="action">
+          <option value="deposit">Deposit</option>
+          <option value="withdraw">Withdraw</option>
+          <option value="transfer">Transfer</option>
+          <option value="fee">Fee</option>
+          <option value="interest">Interest (savings)</option>
+        </select>
+      </div>
+      <div>
+        <label for="amount">Amount</label>
+        <input id="amount" type="number" min="0.01" step="0.01" value="100.00">
+      </div>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <div id="toWrap" hidden>
+        <label for="toAcct">To account</label>
+        <select id="toAcct"></select>
+      </div>
+      <div>
+        <label for="desc">Description</label>
+        <input id="desc" placeholder="March salary">
+      </div>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <button id="btnPost">Post</button>
+      <button class="ghost" id="btnFreeze">Freeze / unfreeze</button>
+      <button class="ghost" id="btnDemo">Load demo</button>
+    </div>
+    <div class="msg" id="postMsg" role="status"></div>
+  </div>
+</section>
+
+<section class="card" style="margin-top:16px" aria-label="Statement">
+  <h2>Statement</h2>
+  <div style="overflow-x:auto">
+    <table id="stmtTable">
+      <caption class="sr">Ledger entries for selected account</caption>
+      <thead><tr><th>Date</th><th>Type</th><th>Description</th><th class="num">Amount</th><th class="num">Balance</th></tr></thead>
+      <tbody></tbody>
+      <tfoot></tfoot>
+    </table>
+  </div>
+</section>
+
+<section class="card" style="margin-top:16px" aria-label="Audit">
+  <h2>Audit replay</h2>
+  <p style="margin-top:0;color:var(--muted);font-size:.9rem">Replays every entry from zero and checks the derived balance still agrees — the same proof <code>audit</code> runs in the CLI.</p>
+  <button id="btnAudit">Run audit</button>
+  <div class="audit" id="auditOut" style="margin-top:10px"></div>
+</section>
+</main>
+
+<footer>
+  <p>56 tests passing · <a href="https://github.com/umer-78">github.com/umer-78</a></p>
+</footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  // --- money as integer cents: 0.1 + 0.2 === 0.3, exactly ---
+  function toCents(x) { return Math.round(Number(x) * 100); }
+  function fmt(cents) {
+    const neg = cents < 0; const v = Math.abs(cents);
+    const s = (v / 100).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    return (neg ? "-" : "") + s;
+  }
+
+  const CREDIT = new Set(["Deposit", "TransferIn", "Interest"]);
+  let ledger = { accounts: [], next: 1, selected: null };
+  let clockDay = new Date();
+
+  function now() { return new Date(clockDay.getTime()); }
+
+  function Account(number, holder, type, overdraftCents) {
+    this.number = number; this.holder = holder; this.type = type;
+    this.overdraftCents = overdraftCents; this.frozen = false; this.entries = [];
+  }
+  Account.prototype.balance = function () {
+    return this.entries.length ? this.entries[this.entries.length - 1].balanceAfter : 0;
+  };
+  Account.prototype.available = function () { return this.balance() + this.overdraftCents; };
+  Account.prototype.recompute = function () {
+    let run = 0;
+    for (const e of this.entries) run += CREDIT.has(e.type) ? e.amount : -e.amount;
+    return run;
+  };
+  Account.prototype.post = function (type, amountCents, description, reference) {
+    if (this.frozen) throw new Error(this.number + ": account is frozen");
+    if (amountCents <= 0) throw new Error(type + " must be a positive amount");
+    const next = this.balance() + (CREDIT.has(type) ? amountCents : -amountCents);
+    if (next < -this.overdraftCents) {
+      throw new Error("cannot " + (CREDIT.has(type) ? "credit" : "debit") + " " + fmt(amountCents) +
+        ", available " + fmt(this.available()));
+    }
+    const entry = { at: now(), type: type, amount: amountCents, balanceAfter: next,
+      description: description || type, reference: reference || null };
+    this.entries.push(entry);
+    return entry;
+  };
+
+  function open(holder, type, overdraft) {
+    holder = (holder || "").trim();
+    if (!holder) throw new Error("an account needs a holder name");
+    if (overdraft < 0) throw new Error("overdraft limit cannot be negative");
+    if (type === "savings" && overdraft > 0) throw new Error("a savings account cannot have an overdraft");
+    const number = "ACC-" + String(ledger.next).padStart(4, "0");
+    ledger.next++;
+    const a = new Account(number, holder, type, toCents(overdraft || 0));
+    ledger.accounts.push(a);
+    if (!ledger.selected) ledger.selected = number;
+    return a;
+  }
+
+  function get(number) {
+    const a = ledger.accounts.find(x => x.number === number);
+    if (!a) throw new Error("no such account " + number);
+    return a;
+  }
+
+  function transfer(fromNum, toNum, amountCents, description) {
+    if (fromNum === toNum) throw new Error("cannot transfer an account to itself");
+    const src = get(fromNum), dst = get(toNum);
+    if (dst.frozen) throw new Error(dst.number + ": account is frozen");
+    const ref = Math.random().toString(36).slice(2, 10).toUpperCase();
+    const label = description || ("Transfer " + src.number + " -> " + dst.number);
+    const debit = src.post("TransferOut", amountCents, label, ref);
+    try {
+      dst.post("TransferIn", amountCents, label, ref);
+    } catch (err) {
+      src.post("TransferIn", debit.amount, "Reversal of " + ref, ref);
+      throw err;
+    }
+  }
+
+  function postInterest(annualPercent) {
+    const monthly = annualPercent / 12 / 100;
+    const posted = [];
+    for (const a of ledger.accounts) {
+      if (a.type !== "savings" || a.frozen) continue;
+      const cents = Math.round(a.balance() * monthly);
+      if (cents <= 0) continue;
+      posted.push(a.post("Interest", cents, "Interest at " + annualPercent + "% p.a."));
+    }
+    return posted;
+  }
+
+  function audit() {
+    const problems = [];
+    for (const a of ledger.accounts) {
+      const replayed = a.recompute();
+      if (replayed !== a.balance()) {
+        problems.push(a.number + ": entries add to " + fmt(replayed) + " but balance says " + fmt(a.balance()));
+      }
+      if (a.type === "savings" && a.balance() < 0) {
+        problems.push(a.number + ": savings account is negative (" + fmt(a.balance()) + ")");
+      }
+      if (a.balance() < -a.overdraftCents) {
+        problems.push(a.number + ": balance " + fmt(a.balance()) + " is past the overdraft floor " + fmt(-a.overdraftCents));
+      }
+    }
+    return problems;
+  }
+
+  // --- demo seed, mirrors the CLI `demo` command ---
+  function loadDemo() {
+    ledger = { accounts: [], next: 1, selected: null };
+    clockDay = new Date();
+    const day = n => { const d = new Date(clockDay); d.setDate(d.getDate() - (10 - n)); return d; };
+    const a1 = open("Ayesha Khan", "checking", 5000);
+    const a2 = open("Ayesha Khan", "savings", 0);
+    const a3 = open("Gulberg Hardware", "checking", 0);
+    const savedNow = clockDay;
+    clockDay = day(1); a1.post("Deposit", 18500000, "March salary");
+    clockDay = day(2); a1.post("TransferOut", 6000000, "Monthly saving", "REFSEED1"); a2.post("TransferIn", 6000000, "Monthly saving", "REFSEED1");
+    clockDay = day(4); a1.post("Withdrawal", 1250000, "Rent top-up");
+    a2.post("Deposit", 0 + 6000000, "Top up savings");
+    clockDay = day(7); a1.post("TransferOut", 845000, "Paint and fittings", "REFSEED2"); a3.post("TransferIn", 845000, "Paint and fittings", "REFSEED2");
+    clockDay = day(11 > 10 ? 10 : 11); clockDay = day(10);
+    a1.post("Fee", 25000, "Card annual fee");
+    clockDay = savedNow;
+    postInterest(8.5);
+    ledger.selected = a1.number;
+    render();
+    msg("openMsg", "Seeded 3 accounts and demo entries.", true);
+  }
+
+  // --- UI ---
+  const $ = id => document.getElementById(id);
+
+  function msg(id, text, ok) {
+    const el = $(id);
+    el.textContent = text;
+    el.className = "msg " + (ok ? "ok" : "err");
+    if (ok) setTimeout(() => { el.className = "msg"; }, 4000);
+  }
+
+  function selected() { return ledger.selected ? get(ledger.selected) : null; }
+
+  function renderAccounts() {
+    const list = $("acctList");
+    list.innerHTML = "";
+    for (const a of ledger.accounts) {
+      const div = document.createElement("div");
+      div.className = "acct";
+      div.setAttribute("role", "option");
+      div.setAttribute("aria-selected", a.number === ledger.selected ? "true" : "false");
+      div.tabIndex = 0;
+      div.innerHTML =
+        '<div class="top"><span>' + esc(a.number) + " · " + esc(a.holder) + '</span>' +
+        '<span>' + fmt(a.balance()) + '</span></div>' +
+        '<div class="meta">' + a.type +
+        (a.overdraftCents ? " · OD " + fmt(a.overdraftCents) : "") +
+        ' · ' + a.entries.length + ' entries' +
+        (a.frozen ? ' <span class="tag frozen">frozen</span>' : '') + '</div>';
+      div.addEventListener("click", () => { ledger.selected = a.number; render(); });
+      div.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); ledger.selected = a.number; render(); } });
+      list.appendChild(div);
+    }
+    const sel = $("toAcct");
+    const prev = sel.value;
+    sel.innerHTML = "";
+    for (const a of ledger.accounts) {
+      const o = document.createElement("option");
+      o.value = a.number; o.textContent = a.number + " · " + a.holder;
+      sel.appendChild(o);
+    }
+    if (prev) sel.value = prev;
+  }
+
+  function renderSelected() {
+    const a = selected();
+    if (!a) { $("selBalance").textContent = "—"; $("selMeta").textContent = "Open an account to begin."; return; }
+    $("selBalance").textContent = "PKR " + fmt(a.balance());
+    $("selBalance").className = "balance-big " + (a.balance() < 0 ? "neg" : "");
+    $("selMeta").innerHTML = esc(a.number) + " · " + esc(a.holder) + " · " + a.type +
+      " · available <strong>PKR " + fmt(a.available()) + "</strong>" +
+      (a.frozen ? ' <span class="tag frozen">frozen</span>' : "");
+  }
+
+  function renderStatement() {
+    const a = selected();
+    const tbody = $("stmtTable").querySelector("tbody");
+    const tfoot = $("stmtTable").querySelector("tfoot");
+    tbody.innerHTML = ""; tfoot.innerHTML = "";
+    if (!a) return;
+    let credits = 0, debits = 0;
+    for (const e of a.entries) {
+      const isCredit = CREDIT.has(e.type);
+      if (isCredit) credits += e.amount; else debits += e.amount;
+      const tr = document.createElement("tr");
+      const sign = isCredit ? "+" : "-";
+      tr.innerHTML =
+        "<td>" + e.at.toISOString().slice(0, 10) + "</td>" +
+        "<td>" + esc(e.type) + "</td>" +
+        "<td>" + esc(e.description) + (e.reference ? ' <span class="tag">' + esc(e.reference) + "</span>" : "") + "</td>" +
+        '<td class="num ' + (isCredit ? "pos" : "neg") + '">' + sign + fmt(e.amount) + "</td>" +
+        '<td class="num">' + fmt(e.balanceAfter) + "</td>";
+      tbody.appendChild(tr);
+    }
+    if (!a.entries.length) {
+      tbody.innerHTML = '<tr><td colspan="5" style="color:var(--muted)">No entries yet.</td></tr>';
+    }
+    tfoot.innerHTML =
+      '<tr><td colspan="3" style="color:var(--muted)">Credits</td><td class="num pos">' + fmt(credits) + '</td><td></td></tr>' +
+      '<tr><td colspan="3" style="color:var(--muted)">Debits</td><td class="num neg">' + fmt(debits) + '</td><td></td></tr>' +
+      '<tr><td colspan="3" style="font-weight:700">Closing balance</td><td class="num" style="font-weight:700">' + fmt(a.balance()) + '</td><td></td></tr>';
+  }
+
+  function render() { renderAccounts(); renderSelected(); renderStatement(); }
+  function esc(s) { return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+
+  $("btnOpen").addEventListener("click", () => {
+    try {
+      open($("holder").value, $("type").value, Number($("od").value) || 0);
+      render();
+      msg("openMsg", "Opened " + ledger.accounts[ledger.accounts.length - 1].number + ".", true);
+    } catch (e) { msg("openMsg", e.message, false); }
+  });
+
+  $("action").addEventListener("change", () => {
+    $("toWrap").hidden = $("action").value !== "transfer";
+  });
+
+  $("btnPost").addEventListener("click", () => {
+    try {
+      const a = selected();
+      if (!a) throw new Error("open an account first");
+      const cents = toCents($("amount").value);
+      if (!(cents > 0)) throw new Error("amount must be positive");
+      const desc = $("desc").value;
+      const action = $("action").value;
+      if (action === "deposit") a.post("Deposit", cents, desc || "Deposit");
+      else if (action === "withdraw") a.post("Withdrawal", cents, desc || "Withdrawal");
+      else if (action === "fee") a.post("Fee", cents, desc || "Service fee");
+      else if (action === "transfer") transfer(a.number, $("toAcct").value, cents, desc);
+      else if (action === "interest") {
+        const n = postInterest(Number($("amount").value) || 8.5);
+        if (!n.length) throw new Error("no eligible savings accounts with a positive balance");
+      }
+      render();
+      msg("postMsg", "Posted. New balance PKR " + fmt(selected().balance()) + ".", true);
+    } catch (e) { msg("postMsg", e.message, false); }
+  });
+
+  $("btnFreeze").addEventListener("click", () => {
+    const a = selected();
+    if (!a) return;
+    a.frozen = !a.frozen;
+    render();
+    msg("postMsg", a.number + (a.frozen ? " frozen." : " unfrozen."), true);
+  });
+
+  $("btnDemo").addEventListener("click", loadDemo);
+
+  $("btnAudit").addEventListener("click", () => {
+    if (!ledger.accounts.length) { $("auditOut").textContent = "No accounts to audit."; return; }
+    const problems = audit();
+    const lines = [];
+    for (const a of ledger.accounts) {
+      lines.push(a.number + ": replayed " + fmt(a.recompute()) + " vs balance " + fmt(a.balance()) +
+        (a.recompute() === a.balance() ? "  OK" : "  MISMATCH"));
+    }
+    if (problems.length === 0) {
+      lines.push("");
+      lines.push("audit clean: " + ledger.accounts.length + " account(s), every balance matches its entries");
+      $("auditOut").style.color = "var(--good)";
+    } else {
+      lines.push("");
+      problems.forEach(p => lines.push("BREAK: " + p));
+      $("auditOut").style.color = "var(--bad)";
+    }
+    $("auditOut").textContent = lines.join("\n");
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
