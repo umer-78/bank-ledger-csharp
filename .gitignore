@@ -6,3 +6,5 @@ TestResults/
 .idea/
 *.csv
 !examples/*.csv
+
+.DS_Store
