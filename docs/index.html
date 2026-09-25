@@ -448,9 +448,9 @@ footer a:hover { color: var(--accent); }
     clockDay = day(1); a1.post("Deposit", 18500000, "March salary");
     clockDay = day(2); a1.post("TransferOut", 6000000, "Monthly saving", "REFSEED1"); a2.post("TransferIn", 6000000, "Monthly saving", "REFSEED1");
     clockDay = day(4); a1.post("Withdrawal", 1250000, "Rent top-up");
-    a2.post("Deposit", 0 + 6000000, "Top up savings");
+    a2.post("Deposit", 6000000, "Top up savings");
     clockDay = day(7); a1.post("TransferOut", 845000, "Paint and fittings", "REFSEED2"); a3.post("TransferIn", 845000, "Paint and fittings", "REFSEED2");
-    clockDay = day(11 > 10 ? 10 : 11); clockDay = day(10);
+    clockDay = day(10);
     a1.post("Fee", 25000, "Card annual fee");
     clockDay = savedNow;
     postInterest(8.5);
