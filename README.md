@@ -2,6 +2,8 @@
 
 [![CI](https://github.com/umer-78/bank-ledger-csharp/actions/workflows/ci.yml/badge.svg)](https://github.com/umer-78/bank-ledger-csharp/actions/workflows/ci.yml)
 
+[![Bank Ledger: the live demo](.github/preview.jpg)](https://umer-78.github.io/bank-ledger-csharp/)
+
 **Live demo:** https://umer-78.github.io/bank-ledger-csharp/
 
 An append-only account ledger in C# — deposits, withdrawals, transfers,
