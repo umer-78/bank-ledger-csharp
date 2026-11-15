@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-scene="data" data-fx-compact="">
+<html lang="en" data-scene="ledger" data-fx-compact="" data-look="baskerville" data-hero="right" data-card="outline" data-motif="lines" data-backdrop="motes">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -10,8 +10,8 @@
 <meta property="og:url" content="https://umer-78.github.io/bank-ledger-csharp/">
 <meta name="twitter:card" content="summary">
 <meta name="description" content="Append-only account ledger in C# — interactive demo with deposits, transfers and audit replay.">
-<meta name="theme-color" content="#2563eb" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0a0c10" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#1679c2" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#081019" media="(prefers-color-scheme: dark)">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%232563eb'/><stop offset='1' stop-color='%237c3aed'/></linearGradient></defs><rect width='32' height='32' rx='8' fill='url(%23g)'/><text x='16' y='22' font-size='16' text-anchor='middle' fill='white' font-family='system-ui' font-weight='bold'>B</text></svg>">
 <style>
 :root {
@@ -233,7 +233,7 @@ html.mk-pre header.top, html.mk-pre main section, html.mk-pre section.card, html
 <script>(function(){try{if(!(matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)){var r=document.documentElement;r.classList.add('mk-pre');setTimeout(function(){r.classList.remove('mk-pre')},2200)}}catch(e){}})();</script>
 <!-- /motion-kit:head -->
 <!-- fx:v2 -->
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Libre+Franklin:wght@400;500;600&family=Courier+Prime:wght@400;700&display=swap" id="fx-fonts">
 <link rel="stylesheet" href="fx.css">
 <style>:root { --fx-2: #06b6d4; --fx-3: #f59e0b; }</style>
 <!-- /fx:v2 -->
@@ -247,6 +247,11 @@ html.mk-pre header.top, html.mk-pre main section, html.mk-pre section.card, html
 <meta property="og:image:alt" content="BankLedger — Interactive Demo: the live demo">
 <meta name="twitter:card" content="summary_large_image">
 <!-- /og -->
+<style id="fx-look">:root[data-look] { --font: 'Libre Franklin', system-ui, -apple-system, "Segoe UI", sans-serif; --fx-display: 'Libre Baskerville', Georgia, serif; --mono: 'Courier Prime', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; --fx-display-weight: 700; --fx-tracking: -0.01em; --fx-title-case: none; --fx-radius: 12px; --fx-hero-radius: 22px; --fx-control-radius: 10px; --accent: #1679c2; --accent-hover: #0267aa; --accent-soft: #e8f3ff; --accent-glow: rgb(22 121 194 / 0.16); --on-accent: #ffffff; --fx-2: #6a9705; --fx-3: #a388f8; --bg: #f5faff; --bg-elevated: #fcfeff; --surface: #fdfeff; --surface-2: #ecf5fd; --surface-3: #e3ecf6; --border: #d5dfea; --border-strong: #bac6d1; --line: #d5dfea; }
+@media (prefers-color-scheme: dark) { :root[data-look]:not([data-theme="light"]) { --accent: #50a3ec; --accent-hover: #6eb6f8; --accent-soft: rgb(80 163 236 / 0.14); --accent-glow: rgb(80 163 236 / 0.2); --on-accent: #06131e; --fx-2: #98c25a; --fx-3: #c0b1fe; --bg: #081019; --bg-elevated: #0e1720; --surface: #101a24; --surface-2: #18232d; --surface-3: #222d37; --border: #28313a; --border-strong: #3a444d; --line: #28313a; } }
+:root[data-look][data-theme="dark"] { --accent: #50a3ec; --accent-hover: #6eb6f8; --accent-soft: rgb(80 163 236 / 0.14); --accent-glow: rgb(80 163 236 / 0.2); --on-accent: #06131e; --fx-2: #98c25a; --fx-3: #c0b1fe; --bg: #081019; --bg-elevated: #0e1720; --surface: #101a24; --surface-2: #18232d; --surface-3: #222d37; --border: #28313a; --border-strong: #3a444d; --line: #28313a; }</style>
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.min.js" data-fx>
+<link rel="modulepreload" href="fx3d.js" data-fx>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
